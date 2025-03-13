@@ -1,9 +1,11 @@
-import { useStorage } from '@vueuse/core'
+import { ref } from 'vue'
+
+const playerName = ref('')
 
 export default function useGame() {
-  const playerName = useStorage('playerName', '')
+  return { playerName }
+}
 
-  return {
-    playerName,
-  }
+export function setPlayerName(name: string) {
+  playerName.value = name
 }

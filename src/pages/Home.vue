@@ -1,56 +1,41 @@
-<script setup lang="ts">
-import { ref, watch } from 'vue'
-import { useRouter } from 'vue-router'
-import { connect, createGame } from '../store'
-import useGame from '../useGame'
+<template>
+  <div class="flex flex-col items-center justify-center h-screen">
+    <h1 class="text-4xl font-bold mb-8">Gappy Game</h1>
+    <input v-model="name" placeholder="Enter your name" class="input input-bordered w-full max-w-xs mb-4" />
+    <BaseButton @click="createRoom">Create Room</BaseButton>
+    <input v-model="roomId" placeholder="Enter Room ID" class="input input-bordered w-full max-w-xs mt-4 mb-4" />
+    <BaseButton @click="joinRoom">Join Room</BaseButton>
+  </div>
+</template>
 
+<script setup lang="ts">
+import { ref } from 'vue'
+import { useRouter } from 'vue-router'
+import { createGame, connect, myPeer } from '../store'
+import BaseButton from '../components/BaseButton.vue'
+import { setPlayerName } from '../useGame'
+
+const name = ref('')
+const roomId = ref('')
 const router = useRouter()
 
-const { playerName } = useGame()
-
-const roomId = ref('')
-
-const newName = ref('')
-
-watch(roomId, () => roomId.value = roomId.value.toUpperCase())
-
-function handleJoinRoom() {
-  connect(roomId.value)
-  router.push({ name: 'game-room' })
+function createRoom() {
+  if (name.value) {
+    setPlayerName(name.value)
+    createGame()
+    myPeer.on('open', () => {
+      if (myPeer.id) {
+        router.push({ name: 'game-room' })
+      }
+    })
+  }
 }
 
-function handleCreateGame() {
-  createGame()
-  router.push({ name: 'game-room' })
+function joinRoom() {
+  if (roomId.value && name.value) {
+    setPlayerName(name.value)
+    connect(roomId.value)
+    router.push({ name: 'game-room' })
+  }
 }
 </script>
-
-<template>
-  <div class="text-6xl font-bold text-primary">
-    INSIDER
-  </div>
-
-  <template v-if="playerName">
-    <div class="flex items-end gap-4 text-4xl ">
-      <span>Hello,</span>
-      <span class="cursor-pointer underline transition-colors hover:text-primary" @click="playerName = ''">{{ playerName }}</span>
-    </div>
-
-    <input v-model="roomId" type="text" placeholder="Type Your Room ID" class="input input-bordered w-full max-w-xs text-center" maxlength="4">
-
-    <button class="btn btn-primary mt-4 w-full max-w-xs" @click="handleJoinRoom">
-      join game
-    </button>
-
-    <button class="btn btn-primary btn-outline w-full max-w-xs" @click="handleCreateGame">
-      create game
-    </button>
-  </template>
-
-  <form v-else @submit="playerName = newName">
-    <input v-model="newName" type="text" placeholder="Type Your Name" class="input input-bordered w-full max-w-xs text-center">
-    <button class="btn btn-primary mt-4 w-full max-w-xs" type="submit">
-      enter
-    </button>
-  </form>
-</template>
