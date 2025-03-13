@@ -6,16 +6,21 @@ import { broadcastPeers, gameAnswer, gameStatus, myRole, players, votingPlayers 
 import BaseButton from '../components/BaseButton.vue'
 
 const timer = ref(300)
+const customTime = ref(300) // เพิ่มตัวแปรสำหรับเก็บเวลาที่ตั้งเอง
 
 const router = useRouter()
 
 const hour = computed(() => Math.floor(timer.value / 60))
-
 const minute = computed(() => timer.value - hour.value * 60)
 
-const { pause } = useIntervalFn(() => {
+const { pause, resume } = useIntervalFn(() => {
   timer.value -= 1
 }, 1000)
+
+function setCustomTime() {
+  timer.value = customTime.value
+  resume()
+}
 
 useTimeoutFn(() => {
   pause()
@@ -97,7 +102,7 @@ function finishGame() {
     </template>
   </div>
 
-  <template v-if="timer > 0">
+  <div v-if="timer > 0">
     <div class="pt-4 text-4xl">
       {{ getPadStartText(hour) }}:{{ getPadStartText(minute) }}
     </div>
@@ -105,7 +110,12 @@ function finishGame() {
     <BaseButton v-if="myRole === 'leader'" @click="finishGame">
       Correct !!
     </BaseButton>
-  </template>
+
+    <div v-if="myRole === 'leader'">
+      <input v-model="customTime" type="number" placeholder="Set custom time" />
+      <BaseButton @click="setCustomTime">Set Time</BaseButton>
+    </div>
+  </div>
   <template v-else>
     <div
       class="text-6xl font-bold uppercase"

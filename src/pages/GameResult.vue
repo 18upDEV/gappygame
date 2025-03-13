@@ -16,7 +16,7 @@ function handleNewGame() {
 }
 
 function playAgain() {
-  // รีเซ็ตค่าที่จำเป็นเพื่อเริ่มเกมใหม่
+  // รีเซ็ตค่าที่จำเป็นเพื่อเริ่มเกมใหม่ในห้องเดิม
   gameResult.value = undefined
   winnerSide.value = undefined
   players.value.forEach(player => {
@@ -25,7 +25,7 @@ function playAgain() {
     player.votingPlayers = []
   })
 
-  // ส่งข้อมูลไปยังผู้เล่นทุกคนเพื่อเริ่มเกมใหม่
+  // ส่งข้อมูลให้เริ่มเกมใหม่
   broadcastPeers({ type: 'startGame' })
 }
 </script>
