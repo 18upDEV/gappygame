@@ -2,7 +2,7 @@
 import { useRouter } from 'vue-router'
 import BaseButton from '../components/BaseButton.vue'
 import BasePlayerListItem from '../components/BasePlayerListItem.vue'
-import { gameResult, insiderPlayer, isMyRoleLeader, myRole, players, quitGame, winnerSide } from '../store'
+import { gameResult, insiderPlayer, isMyRoleLeader, myRole, players, quitGame, winnerSide, broadcastPeers } from '../store'
 
 const router = useRouter()
 
@@ -14,24 +14,28 @@ function handleNewGame() {
   quitGame()
   router.push({ name: 'home' })
 }
+
+function playAgain() {
+  // รีเซ็ตค่าที่จำเป็นเพื่อเริ่มเกมใหม่
+  gameResult.value = undefined
+  winnerSide.value = undefined
+  players.value.forEach(player => {
+    player.isReady = false
+    player.isVoted = false
+    player.votingPlayers = []
+  })
+
+  // ส่งข้อมูลไปยังผู้เล่นทุกคนเพื่อเริ่มเกมใหม่
+  broadcastPeers({ type: 'startGame' })
+}
 </script>
 
 <template>
   <template v-if="isMyRoleLeader">
-    <div
-      class="text-6xl"
-    >
-      Winner is
-    </div>
-    <div class="text-6xl font-bold uppercase text-primary">
-      {{ winnerSide }}
-    </div>
+    <div class="text-6xl">Winner is</div>
+    <div class="text-6xl font-bold uppercase text-primary">{{ winnerSide }}</div>
   </template>
-  <div
-    v-else
-    class="text-6xl font-bold uppercase"
-    :class="{ 'text-primary': gameResult === 'win' }"
-  >
+  <div v-else class="text-6xl font-bold uppercase" :class="{ 'text-primary': gameResult === 'win' }">
     {{ gameResult }}
   </div>
 
@@ -43,18 +47,13 @@ function handleNewGame() {
       The <span class="font-bold text-primary">INSIDER</span> is
     </div>
 
-    <div
-      class="mt-4 w-full max-w-xs rounded-xl border-2 border-dashed border-primary p-4 text-center text-6xl text-white"
-    >
+    <div class="mt-4 w-full max-w-xs rounded-xl border-2 border-dashed border-primary p-4 text-center text-6xl text-white">
       {{ insiderPlayer.playerName }}
     </div>
   </template>
 
   <div class="flex w-full max-w-xs flex-col gap-4 pt-4">
-    <div>
-      Voting Result
-    </div>
-
+    <div>Voting Result</div>
     <div v-for="player of votingResultPlayers" :key="player.peer" class="flex flex-col gap-1">
       <BasePlayerListItem :player="player">
         {{ player.playerName }}
@@ -68,7 +67,6 @@ function handleNewGame() {
     </div>
   </div>
 
-  <BaseButton class="mt-4" @click="handleNewGame">
-    New Game
-  </BaseButton>
+  <BaseButton class="mt-4" @click="handleNewGame">New Game</BaseButton>
+  <BaseButton class="mt-2" @click="playAgain">Play Again</BaseButton>
 </template>
